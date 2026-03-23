@@ -1,0 +1,861 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\..\FrameXML\UI.xsd">
+<!--
+	License:
+		This program is free software; you can redistribute it and/or
+		modify it under the terms of the GNU General Public License
+		as published by the Free Software Foundation; either version 2
+		of the License, or (at your option) any later version.
+
+		This program is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
+
+		You should have received a copy of the GNU General Public License
+		along with this program (see GLP.txt); if not, write to the Free Software
+		Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+-->
+
+	<Script file="localization.lua"/>
+	<Script file="Possessions.lua"/>
+	<Button name="Possessions_BrowseButtonTemplate" hidden="true" virtual="true">
+		<Size>
+			<AbsDimension x="350" y="27"/>
+		</Size>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<FontString name="$parentName" inherits="GameFontHighlight" justifyH="LEFT">
+					<Size>
+						<AbsDimension x="270" y="25"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="43" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentQuantity" inherits="NumberFontNormal" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentName" relativePoint="RIGHT">
+							<Offset>
+								<AbsDimension x="0" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<Texture name="$parentLeft" file="Interface\AuctionFrame\UI-AuctionItemNameFrame">
+					<Size>
+						<AbsDimension x="10" y="25"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="34" y="2"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0" right="0.078125" top="0" bottom="1.0"/>
+				</Texture>
+				<Texture name="$parentRight" file="Interface\AuctionFrame\UI-AuctionItemNameFrame">
+					<Size>
+						<AbsDimension x="10" y="25"/>
+					</Size>
+					<Anchors>
+						<Anchor point="RIGHT">
+							<Offset>
+								<AbsDimension x="0" y="2"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0.75" right="0.828125" top="0" bottom="1.0"/>
+				</Texture>
+				<Texture file="Interface\AuctionFrame\UI-AuctionItemNameFrame">
+					<Size>
+						<AbsDimension x="10" y="25"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentLeft" relativePoint="RIGHT">
+							<Offset>
+								<AbsDimension x="0" y="0"/>
+							</Offset>
+						</Anchor>
+						<Anchor point="RIGHT" relativeTo="$parentRight" relativePoint="LEFT">
+							<Offset>
+								<AbsDimension x="0" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0.078125" right="0.75" top="0" bottom="1.0"/>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button name="$parentItem">
+				<Size>
+					<AbsDimension x="25" y="25"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="0" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="BORDER">
+						<Texture name="$parentIconTexture"/>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnLoad>
+						self:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+					</OnLoad>
+					<OnClick>
+						Possessions_Click(self,button);
+					</OnClick>
+					<OnEnter>
+						Possessions_ItemButton_OnEnter(self);
+					</OnEnter>
+					<OnLeave>
+						Possessions_ItemButton_OnLeave(self);
+					</OnLeave>
+				</Scripts>
+				<HighlightTexture file="Interface\Buttons\ButtonHilight-Square" alphaMode="ADD"/>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				self:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+			</OnLoad>
+			<OnClick>
+				Possessions_Click(self,button);
+			</OnClick>
+			<OnEnter>
+				Possessions_ItemButton_OnEnter(self);
+			</OnEnter>
+			<OnLeave>
+				Possessions_ItemButton_OnLeave(self);
+			</OnLeave>
+		</Scripts>
+		<HighlightTexture name="$parentHighlight" file="Interface\HelpFrame\HelpFrameButton-Highlight" alphaMode="ADD">
+			<Size>
+				<AbsDimension x="315" y="22"/>
+			</Size>
+			<Anchors>
+				<Anchor point="TOPLEFT">
+					<Offset>
+						<AbsDimension x="33" y="0"/>
+					</Offset>
+				</Anchor>
+			</Anchors>
+			<TexCoords left="0" right="1.0" top="0" bottom="0.578125"/>
+		</HighlightTexture>
+	</Button>
+	<Frame name="Possessions_Frame" toplevel="true" movable="true" enableMouse="true" hidden="true" parent="UIParent">
+
+		<Size>
+			<AbsDimension x="415" y="550"/>
+		</Size>
+		<Anchors>
+			<Anchor point="CENTER">
+				<Offset>
+					<AbsDimension x="5" y="0"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+			<BackgroundInsets>
+				<AbsInset left="11" right="12" top="12" bottom="11"/>
+			</BackgroundInsets>
+			<TileSize>
+				<AbsValue val="32"/>
+			</TileSize>
+			<EdgeSize>
+				<AbsValue val="32"/>
+			</EdgeSize>
+		</Backdrop>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parentHeader" file="Interface\DialogFrame\UI-DialogBox-Header">
+					<Size>
+						<AbsDimension x="310" y="64"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="12"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString name="$parentTitle" inherits="GameFontNormal" text="PossessionsLocale.INV_TITLE_TEXT">
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentSearchText" inherits="GameFontHighlightSmall" text="PossessionsLocale.TEXT_SEARCH">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeTo="Possessions_Frame" relativePoint="TOPLEFT">
+							<Offset>
+								<AbsDimension x="130" y="-70"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button name="$parentCloseButton" inherits="UIPanelCloseButton">
+				<Anchors>
+					<Anchor point="TOPRIGHT" relativeTo="Possessions_Frame" relativePoint="TOPRIGHT">
+						<Offset>
+							<AbsDimension x="-5" y="-6"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="Possessions_ResetButton" inherits="OptionsButtonTemplate" text="Reset">
+				<Size>
+					<AbsDimension x="45" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="Possessions_Frame" relativePoint="TOPLEFT">
+						<Offset>
+							<AbsDimension x="348" y="-84"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick> Possessions_ResetButton_OnClick(self); </OnClick>
+				</Scripts>
+			</Button>
+			<Button name="Possessions_SearchButton" inherits="OptionsButtonTemplate" text="Search">
+				<Size>
+					<AbsDimension x="55" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="Possessions_Frame" relativePoint="TOPLEFT">
+						<Offset>
+							<AbsDimension x="293" y="-84"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick> Possessions_Update(); </OnClick>
+				</Scripts>
+			</Button>
+			<Frame name="Possessions_CharDropDown" inherits="UIDropDownMenuTemplate" id="1" hidden="false">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="Possessions_Frame" relativePoint="TOPLEFT">
+						<Offset>
+							<AbsDimension x="-3" y="-15"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnShow>
+						Possessions_CharDropDown_OnShow(self);
+					</OnShow>
+				</Scripts>
+			</Frame>
+			<Frame name="Possessions_LocDropDown" inherits="UIDropDownMenuTemplate" id="1" hidden="false">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="Possessions_Frame" relativePoint="TOPLEFT">
+						<Offset>
+							<AbsDimension x="-3" y="-45"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnShow>
+						Possessions_LocDropDown_OnShow(self);
+					</OnShow>
+				</Scripts>
+			</Frame>
+			<Frame name="Possessions_SlotDropDown" inherits="UIDropDownMenuTemplate" id="1" hidden="false">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="Possessions_Frame" relativePoint="TOPLEFT">
+						<Offset>
+							<AbsDimension x="-3" y="-75"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnShow>
+						Possessions_SlotDropDown_OnShow(self);
+					</OnShow>
+				</Scripts>
+			</Frame>	
+<!-- Added by Siz -->
+			<Frame name="Possessions_TypeDropDown" inherits="UIDropDownMenuTemplate" id="1" hidden="true">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="Possessions_Frame" relativePoint="TOPLEFT">
+						<Offset>
+							<AbsDimension x="110" y="-20"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnShow>
+						Possessions_TypeDropDown_OnShow(self);
+					</OnShow>
+				</Scripts>
+			</Frame>	
+			<Frame name="Possessions_SubTypeDropDown" inherits="UIDropDownMenuTemplate" id="1" hidden="false">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="Possessions_Frame" relativePoint="TOPLEFT">
+						<Offset>
+							<AbsDimension x="110" y="-20"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnShow>
+						Possessions_SubTypeDropDown_OnShow(self);
+					</OnShow>
+				</Scripts>
+			</Frame>	
+<!-- Added by Siz -->
+			<EditBox name="Possessions_SearchBox" autoFocus="false" inherits="InputBoxTemplate">
+				<Size>
+					<AbsDimension x="155" y="25"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="Possessions_Frame" relativePoint="TOPLEFT">
+						<Offset>
+							<AbsDimension x="135" y="-81"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnEscapePressed>
+						self:ClearFocus();
+					</OnEscapePressed>
+					<OnEnterPressed>
+			   		Possessions_Update();
+					</OnEnterPressed>
+				</Scripts>
+			</EditBox>
+      <!-- Checkbox to enable fulltext searching -->
+			<CheckButton name="POSSESSIONS_CHK_FullText" virtual="true">
+				<Size>
+					<AbsDimension x="20" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="Possessions_Frame">
+						<Offset>
+							<AbsDimension x="330" y="-47"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString name="POSSESSIONS_CHK_FullTextText" inherits="GameFontHighlightSmall" text="PossessionsLocale.CFG_FULLTEXT">
+							<Anchors>
+								<Anchor point="RIGHT" relativePoint="LEFT">
+									<Offset>
+										<AbsDimension x="0" y="1"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnLoad>
+						if ( Possessions_SearchFullText() == true) then
+							self:SetChecked(1);
+						else
+							self:SetChecked(0);
+						end
+					</OnLoad>
+					<OnClick>
+						if( self:GetChecked() == 1) then
+							PossessionsData.config.fulltext = true;
+							PlaySound("igMainMenuOptionCheckBoxOn");
+						else
+							PossessionsData.config.fulltext = false;
+							PlaySound("igMainMenuOptionCheckBoxOff");
+						end
+						Possessions_Update();
+					 </OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-CheckBox-Up"/>
+				<PushedTexture file="Interface\Buttons\UI-CheckBox-Down"/>
+				<HighlightTexture file="Interface\Buttons\UI-CheckBox-Highlight" alphaMode="ADD"/>
+				<CheckedTexture file="Interface\Buttons\UI-CheckBox-Check"/>
+				<DisabledCheckedTexture file="Interface\Buttons\UI-CheckBox-Check-Disabled"/>
+			</CheckButton>
+			
+			<!--  checkbox to filter out guild bank-->
+			<CheckButton name="POSSESSIONS_CHK_GuildBank" virtual="true">
+				<Size>
+					<AbsDimension x="20" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="Possessions_Frame">
+						<Offset>
+							<AbsDimension x="330" y="-63"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString name="POSSESSIONS_CHK_GuildBankText" inherits="GameFontHighlightSmall" text="PossessionsLocale.CFG_GUILDBANK">
+							<Anchors>
+								<Anchor point="RIGHT" relativePoint="LEFT">
+									<Offset>
+										<AbsDimension x="0" y="1"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnLoad>
+						if ( Possessions_SearchGuildBank() == true) then
+							self:SetChecked(1);
+						else
+							self:SetChecked(0);
+						end
+					</OnLoad>
+					<OnClick>
+						if( self:GetChecked() == 1) then
+							PossessionsData.config.guildsearch = true;
+							PlaySound("igMainMenuOptionCheckBoxOn");
+						else
+							PossessionsData.config.guildsearch = false;
+							PlaySound("igMainMenuOptionCheckBoxOff");
+						end
+						Possessions_Update();
+					 </OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-CheckBox-Up"/>
+				<PushedTexture file="Interface\Buttons\UI-CheckBox-Down"/>
+				<HighlightTexture file="Interface\Buttons\UI-CheckBox-Highlight" alphaMode="ADD"/>
+				<CheckedTexture file="Interface\Buttons\UI-CheckBox-Check"/>
+				<DisabledCheckedTexture file="Interface\Buttons\UI-CheckBox-Check-Disabled"/>
+			</CheckButton>
+			
+
+			<CheckButton name="POSSESSIONS_CHK_SortName" virtual="true">
+				<Size>
+					<AbsDimension x="20" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" relativeTo="Possessions_Frame">
+						<Offset>
+							<AbsDimension x="80" y="10"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString name="POSSESSIONS_CHK_SortValueText" inherits="GameFontHighlightSmall" text="PossessionsLocale.INV_HELP3">
+							<Anchors>
+								<Anchor point="RIGHT" relativePoint="LEFT">
+									<Offset>
+										<AbsDimension x="0" y="1"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnLoad>
+						POSSESSIONS_Sort_Name = 1;
+						POSSESSIONS_CHK_SortName:SetChecked(POSSESSIONS_Sort_Name);
+					</OnLoad>
+					<OnClick>
+						if (self:GetChecked()) then
+						  PlaySound("igMainMenuOptionCheckBoxOff");
+						else
+						  PlaySound("igMainMenuOptionCheckBoxOn");
+						end
+						POSSESSIONS_Sort_Name = self:GetChecked();
+						
+						if(POSSESSIONS_Sort_Name == 1) then
+							POSSESSIONS_Sort_Rarity = 0;
+						else
+						  POSSESSIONS_Sort_Rarity = 1;
+						end
+
+						POSSESSIONS_CHK_SortRarity:SetChecked(POSSESSIONS_Sort_Rarity);
+						Possessions_Update();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-CheckBox-Up"/>
+				<PushedTexture file="Interface\Buttons\UI-CheckBox-Down"/>
+				<HighlightTexture file="Interface\Buttons\UI-CheckBox-Highlight" alphaMode="ADD"/>
+				<CheckedTexture file="Interface\Buttons\UI-CheckBox-Check"/>
+				<DisabledCheckedTexture file="Interface\Buttons\UI-CheckBox-Check-Disabled"/>
+			</CheckButton>
+			<CheckButton name="POSSESSIONS_CHK_SortRarity" virtual="true">
+				<Size>
+					<AbsDimension x="20" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" relativeTo="Possessions_Frame">
+						<Offset>
+							<AbsDimension x="140" y="10"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString name="POSSESSIONS_CHK_SortRarityText" inherits="GameFontHighlightSmall" text="PossessionsLocale.INV_HELP4">
+							<Anchors>
+								<Anchor point="RIGHT" relativePoint="LEFT">
+									<Offset>
+										<AbsDimension x="0" y="1"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnLoad>
+						POSSESSIONS_Sort_Rarity = 0;
+						POSSESSIONS_CHK_SortRarity:SetChecked(POSSESSIONS_Sort_Rarity);
+					</OnLoad>
+					<OnClick>
+						if (self:GetChecked()) then
+						  PlaySound("igMainMenuOptionCheckBoxOff");
+						else
+						  PlaySound("igMainMenuOptionCheckBoxOn");
+						end
+						POSSESSIONS_Sort_Rarity = self:GetChecked();
+
+						if(POSSESSIONS_Sort_Rarity == 1) then
+							POSSESSIONS_Sort_Name = 0;
+						else 
+              POSSESSIONS_Sort_Name = 1;
+						end
+
+						POSSESSIONS_CHK_SortName:SetChecked(POSSESSIONS_Sort_Name);
+
+						Possessions_Update();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-CheckBox-Up"/>
+				<PushedTexture file="Interface\Buttons\UI-CheckBox-Down"/>
+				<HighlightTexture file="Interface\Buttons\UI-CheckBox-Highlight" alphaMode="ADD"/>
+				<CheckedTexture file="Interface\Buttons\UI-CheckBox-Check"/>
+				<DisabledCheckedTexture file="Interface\Buttons\UI-CheckBox-Check-Disabled"/>
+			</CheckButton>
+			<CheckButton name="POSSESSIONS_CHK_LiteMode" virtual="true">
+				<Size>
+					<AbsDimension x="20" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" relativeTo="Possessions_Frame">
+						<Offset>
+							<AbsDimension x="350" y="10"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString name="POSSESSIONS_CHK_LiteModeText" inherits="GameFontHighlightSmall" text="PossessionsLocale.CFG_LITEMODE">
+							<Anchors>
+								<Anchor point="RIGHT" relativePoint="LEFT">
+									<Offset>
+										<AbsDimension x="0" y="1"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnLoad>
+						if ( Possessions_IsLiteMode() == true) then
+							self:SetChecked(1)
+						else
+							self:SetChecked(0)
+						end
+					</OnLoad>
+					<OnClick>
+						if( self:GetChecked() == 1) then
+							PossessionsData.config.lite = true
+						  PlaySound("igMainMenuOptionCheckBoxOn")
+              Possessions_RemoveTextures()
+						else
+							PossessionsData.config.lite = false
+						  PlaySound("igMainMenuOptionCheckBoxOff")
+              Possessions_AddTextures()
+						end
+
+						<!--Possessions_Inspect()-->
+						<!--Possessions_ScanInv()-->
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-CheckBox-Up"/>
+				<PushedTexture file="Interface\Buttons\UI-CheckBox-Down"/>
+				<HighlightTexture file="Interface\Buttons\UI-CheckBox-Highlight" alphaMode="ADD"/>
+				<CheckedTexture file="Interface\Buttons\UI-CheckBox-Check"/>
+				<DisabledCheckedTexture file="Interface\Buttons\UI-CheckBox-Check-Disabled"/>
+			</CheckButton>
+			<Button name="POSSESSIONS_MoneyField">
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="POSSESSIONS_CHK_SortRarity" relativePoint="RIGHT">
+						<Offset>
+							<AbsDimension x="25" y="5"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+          <OnEnter>
+            Possessions_ShowMoneyTooltip(self)
+          </OnEnter>
+          <OnLeave>
+            Possessions_HideMoneyTooltip()
+          </OnLeave>
+				</Scripts>
+				<Size>
+					<AbsDimension x="70" y="20"/>
+				</Size>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<FontString name="$parent_Text" inherits="GameFontHighlight" justifyH="LEFT">
+							<Size>
+								<AbsDimension x="100" y="25"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOPLEFT">
+									<Offset>
+										<AbsDimension x="0" y="0"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>		
+					</Layer>
+				</Layers>		
+			</Button>
+			<Button name="POSSESSIONS_BrowseButton1" inherits="Possessions_BrowseButtonTemplate" id="1">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="15" y="-110"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="POSSESSIONS_BrowseButton2" inherits="Possessions_BrowseButtonTemplate" id="2">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="15" y="-137"/>	<!--   105 + 27 -->
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="POSSESSIONS_BrowseButton3" inherits="Possessions_BrowseButtonTemplate" id="3">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="15" y="-164"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="POSSESSIONS_BrowseButton4" inherits="Possessions_BrowseButtonTemplate" id="4">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="15" y="-191"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="POSSESSIONS_BrowseButton5" inherits="Possessions_BrowseButtonTemplate" id="5">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="15" y="-218"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="POSSESSIONS_BrowseButton6" inherits="Possessions_BrowseButtonTemplate" id="6">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="15" y="-245"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="POSSESSIONS_BrowseButton7" inherits="Possessions_BrowseButtonTemplate" id="7">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="15" y="-272"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="POSSESSIONS_BrowseButton8" inherits="Possessions_BrowseButtonTemplate" id="8">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="15" y="-299"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="POSSESSIONS_BrowseButton9" inherits="Possessions_BrowseButtonTemplate" id="9">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="15" y="-326"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="POSSESSIONS_BrowseButton10" inherits="Possessions_BrowseButtonTemplate" id="10">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="15" y="-353"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="POSSESSIONS_BrowseButton11" inherits="Possessions_BrowseButtonTemplate" id="11">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="15" y="-380"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="POSSESSIONS_BrowseButton12" inherits="Possessions_BrowseButtonTemplate" id="12">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="15" y="-407"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="POSSESSIONS_BrowseButton13" inherits="Possessions_BrowseButtonTemplate" id="13">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="15" y="-434"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="POSSESSIONS_BrowseButton14" inherits="Possessions_BrowseButtonTemplate" id="14">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="15" y="-461"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<Button name="POSSESSIONS_BrowseButton15" inherits="Possessions_BrowseButtonTemplate" id="15">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="15" y="-488"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Button>
+			<ScrollFrame name="Possessions_IC_ScrollFrame" inherits="FauxScrollFrameTemplate">
+				<Size>
+					<AbsDimension x="296" y="394"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="Possessions_Frame">
+						<Offset>
+							<AbsDimension x="80" y="-115"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<Texture name="$parentScrollBarTop" file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+							<Size>
+								<AbsDimension x="31" y="256"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOP" relativePoint="TOPRIGHT">
+									<Offset>
+										<AbsDimension x="14" y="5"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+							<TexCoords left="0" right="0.484375" top="0" bottom="1.0"/>
+						</Texture>
+						<Texture file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+							<Size>
+								<AbsDimension x="31" y="42"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOP" relativePoint="TOPRIGHT">
+									<Offset>
+										<AbsDimension x="14" y="-251"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+							<TexCoords left="0" right="0.484375" top="0.515625" bottom="1.0"/>
+						</Texture>
+						<Texture file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+							<Size>
+								<AbsDimension x="31" y="106"/>
+							</Size>
+							<Anchors>
+								<Anchor point="BOTTOM" relativePoint="BOTTOMRIGHT">
+									<Offset>
+										<AbsDimension x="14" y="-2"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+							<TexCoords left="0.515625" right="1.0" top="0" bottom="0.4140625"/>
+						</Texture>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnVerticalScroll>
+						FauxScrollFrame_OnVerticalScroll(self, offset, 16, Possessions_UpdateView);
+					</OnVerticalScroll>
+					<OnShow>
+						Possessions_UpdateView()
+					</OnShow>
+				</Scripts>
+			</ScrollFrame>
+		</Frames>
+		<Scripts>
+			<OnLoad>Possessions_OnLoad(self);</OnLoad>
+			<OnEvent>Possessions_OnEvent(self, event, arg1);</OnEvent>
+			<OnHide>Possessions_Hide(self);</OnHide>
+			<OnMouseDown>self:StartMoving();</OnMouseDown>
+			<OnMouseUp>self:StopMovingOrSizing();</OnMouseUp>
+			<OnDragStop>self:StopMovingOrSizing();</OnDragStop>
+		</Scripts>
+	</Frame>
+
+  <GameTooltip name="PossScanningTooltip" inherits="GameTooltipTemplate">
+    <Scripts>
+      <Onload>
+        self:SetOwner(UIParent, "ANCHOR_NONE");
+      </Onload>
+    </Scripts>
+  </GameTooltip>
+</Ui>

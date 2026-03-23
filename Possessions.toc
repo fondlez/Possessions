@@ -1,0 +1,9 @@
+## Interface: 30300
+## Version: 3.0
+## Title: Possessions |cff00aa003.1|r 
+## Notes: AddOn to keep track of all of your items
+## Author: Oystein, Neloter
+## OptionalDeps: myAddOns, RecipeBook, Blizzard_GuildBankUI
+## SavedVariables: PossessionsData
+
+Possessions.xml
