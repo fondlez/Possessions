@@ -871,8 +871,17 @@ function Possessions_Click(self, button)
 			if IsShiftKeyDown() then
 				if (WIM and WIM.EditBoxInFocus) then
 					WIM.EditBoxInFocus:Insert(itemLink)
-				elseif ChatFrameEditBox:IsVisible() then
-					ChatFrameEditBox:Insert(itemLink)
+        --FIX(@fondlez): chat linking changed significantly in patch 3.3.5
+        ---[[
+        else
+          local editbox = ChatEdit_ChooseBoxForSend()
+
+          ChatEdit_ActivateChat(editbox)
+
+          if editbox then
+            editbox:Insert(itemLink)
+          end
+        ---]]
 				end
 			elseif IsControlKeyDown() then
 				DressUpItemLink(itemLink)
