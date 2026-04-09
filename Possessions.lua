@@ -26,7 +26,7 @@ local string = _G.string
 local DEFAULT_CHAT_FRAME = _G.DEFAULT_CHAT_FRAME
 
 
-local POSSESSIONS_VERSION = GetAddOnMetadata("Possessions","Version")
+local POSSESSIONS_VERSION = GetAddOnMetadata("Possessions","Version"):match("%d+\.%d*\.%d*")
 
 local CHARACTER_NUM_ITEMS = 19
 
@@ -58,9 +58,11 @@ local Possessions_INVENTORY_SLOT_LIST = {
 local realmName, playerName, playerFaction, playerGuild
 
 local searchString
-local searchChar = nil
-local searchLoc = nil
-local searchSlot = nil
+local searchChar
+local searchLoc
+local searchSlot
+local searchType
+local searchSubType
 
 local characterTable = { }
 local DisplayIndices = { }
@@ -134,6 +136,7 @@ local possessionsSlotNames = {
 	{slot = INVTYPE_WRIST, 				name = "INVTYPE_WRIST"} --Wrist
 };
 
+local possessionsTypes = {}
 local possessionsSubTypes = PossessionsLocale.TYPE_TABLE
 
 function Possessions_SlotDropDown_OnClick(self)
@@ -313,7 +316,7 @@ function Possessions_SubTypeDropDown_Initialize(self, level)
 
 	if (level == 2) then
 		local Level1_Key = UIDROPDOWNMENU_MENU_VALUE["Level1_Key"];
-		subarray = possessionsSubTypes[Level1_Key];
+		local subarray = possessionsSubTypes[Level1_Key];
 		for key, value in ipairs(subarray) do
 			local subInfo = UIDropDownMenu_CreateInfo();
 			subInfo.hasArrow = false; -- no submenus this time
@@ -522,7 +525,7 @@ function Possessions_SlashCommandHandler(msg)
 		return
 	end
 
-	local command, argument = msg:match("([^%s]+) (.+)")
+	local command, argument = msg:match("^(%S+)%s*(.-)$")
 	command = (command or ""):lower()
 	argument = (argument or "")
 
@@ -565,40 +568,6 @@ function Possessions_SlashCommandHandler(msg)
 			end
 		end
 		DEFAULT_CHAT_FRAME:AddMessage("[Possessions]: Validated "..numValidated.." items.")
---[[
-	elseif command == "-reset" then
-		DisplayIndices = {}
-		TempTable = {}
-	elseif command == "-findenchant" then
-		for ench=15,4000 do
-			A=select(2,GetItemInfo("item:25:"..ench..":0:0:0:0:0:0"))
-			PossScanningTooltip:ClearLines()
-			PossScanningTooltip:SetHyperlink(A)
-			local text = _G["PossScanningTooltipTextLeft5"]:GetText()
-			if text then
-				if argument=="*" or string.find(string.lower( text ), argument) then
-					DEFAULT_CHAT_FRAME:AddMessage(ench..": "..text)
-				end
-			end
-		end
-	elseif command == "-scantypes" then
-
-		PossessionsData.typestuff = {}
-		local itype,subtype
-		for i=25,34400 do
-			_, _, _, _, _, itype, subtype = GetItemInfo(i)
-			if itype and subtype then
-				if not PossessionsData.typestuff[itype] then
-					PossessionsData.typestuff[itype] = {}
-					PossessionsData.typestuff[itype][subtype] = true
-				else
-					if not PossessionsData.typestuff[itype][subtype] then
-						PossessionsData.typestuff[itype][subtype] = true
-					end
-				end
-			end
-		end
-]]--
 	else
 		local itemName = GetItemInfo(msg)
 		Possessions_SearchBox:SetText(itemName or msg or "")
@@ -1116,19 +1085,8 @@ function Possessions_VarsLoaded(self)
 		PossessionsData.config.guildsearch = false
 	end
 	
+  -- MyAddOns is an old WoW addon management tool
 	if(myAddOnsFrame) then
---[[
-		myAddOnsFrame_Register( {
---			name = 'Possessions',
---			version = POSSESSIONS_VERSION,
---			releaseDate = 'January XX, 20XX',
---			author = 'Anyone',
---			email = 'anyone@anywhere.com',
---			website = 'http://www.anywhere.com',
-			category = MYADDONS_CATEGORY_INVENTORY,
-			optionsframe = 'Possessions_Frame' 
-		})
-]]--
 		myAddOnsList.Possessions = {
 			name = "Possessions",
 			description = "AddOn to keep track of all your items.",
@@ -1345,14 +1303,6 @@ function Possessions_ScanMail()
 				end -- for each attachment
 			end	--if hasItem
 		end
-		--Remove any extra stuff in the table
-		--[[
-		index = #PlayerItemTable[POSS_MAIL_CONTAINER]
-		while(index >= storeIndex ) do
-			PlayerItemTable[POSS_MAIL_CONTAINER][index] = nil
-			index = index - 1
-		end
-		]]--
 		for index, _ in pairs(PlayerItemTable[POSS_MAIL_CONTAINER]) do
 			if index >= storeIndex then
 				PlayerItemTable[POSS_MAIL_CONTAINER][index] = nil
@@ -1509,7 +1459,7 @@ end
 
 function Possessions_OnLoad(self)	
 	self:RegisterEvent("VARIABLES_LOADED")
-	this:RegisterEvent("PLAYER_ENTERING_WORLD")
+	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	table.insert(UISpecialFrames, "Possessions_Frame")
 end
 
