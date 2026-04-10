@@ -862,6 +862,9 @@ function Possessions_Click(self, button)
 	end
 end
 
+local PossItemTooltip = CreateFrame("GameTooltip",
+  "PossessionsItemTooltip", UIParent, "GameTooltipTemplate")
+
 function Possessions_ItemButton_OnEnter(self)
 	local id = self:GetID()
 	local itemLink
@@ -874,23 +877,23 @@ function Possessions_ItemButton_OnEnter(self)
 	local offset = FauxScrollFrame_GetOffset(Possessions_IC_ScrollFrame)
 	local item = DisplayIndices[id + offset]
 	
-	GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
+	PossItemTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
 
 	_, itemLink, _, _, _, _, _, itemStackCount = GetItemInfo( item[INDEX_LINK] )
 	
 	if( itemLink ) then
-		GameTooltip:SetHyperlink(itemLink)
+		PossItemTooltip:SetHyperlink(itemLink)
 
 		if (IsAddOnLoaded("RecipeBook")) then
-			RecipeBook_DoHookedFunction(GameTooltip, itemLink)
+			RecipeBook_DoHookedFunction(PossItemTooltip, itemLink)
 		end
 
 	else
-		GameTooltip:AddLine(item[INDEX_NAME].." ("..PossessionsLocale.ERRORTOOLTIP_L1..")")
+		PossItemTooltip:AddLine(item[INDEX_NAME].." ("..PossessionsLocale.ERRORTOOLTIP_L1..")")
 		if( item[INDEX_LINK]) then
-			GameTooltip:AddLine(PossessionsLocale.ERRORTOOLTIP_L2..item[INDEX_LINK])
-			GameTooltip:AddLine(PossessionsLocale.ERRORTOOLTIP_L3, 1, 1, 1, 1)
-			GameTooltip:AddLine(PossessionsLocale.ERRORTOOLTIP_L4, nil, nil, nil, 1)	--Last 1 tells the tooltip to wrap the text
+			PossItemTooltip:AddLine(PossessionsLocale.ERRORTOOLTIP_L2..item[INDEX_LINK])
+			PossItemTooltip:AddLine(PossessionsLocale.ERRORTOOLTIP_L3, 1, 1, 1, 1)
+			PossItemTooltip:AddLine(PossessionsLocale.ERRORTOOLTIP_L4, nil, nil, nil, 1)	--Last 1 tells the tooltip to wrap the text
 		end
 	end
 
@@ -899,7 +902,7 @@ function Possessions_ItemButton_OnEnter(self)
 	local texture
 	local line
 	
-	GameTooltip:AddLine(" ");
+	PossItemTooltip:AddLine(" ");
 	
 	for charName, value in pairs(item[INDEX_LOCS]) do
 		for index2, quantity in pairs(value) do
@@ -936,17 +939,17 @@ function Possessions_ItemButton_OnEnter(self)
 				end
 	
 				line = quantity .. adj .. Possessions_Capitalize(charName) .. "'s " .. location
-				GameTooltip:AddLine(line)
-				GameTooltip:AddTexture(texture)
+				PossItemTooltip:AddLine(line)
+				PossItemTooltip:AddTexture(texture)
 			end
 		end
 	end
 
 	if( itemStackCount ) then
-		GameTooltip:AddLine("Stack Count: "..itemStackCount)
+		PossItemTooltip:AddLine("Stack Count: "..itemStackCount)
 	end
 	
-	GameTooltip:Show()
+	PossItemTooltip:Show()
 end
 
 function Possessions_Capitalize(str)
@@ -955,7 +958,7 @@ function Possessions_Capitalize(str)
 end
 
 function Possessions_ItemButton_OnLeave(self)
-	GameTooltip:Hide()
+	PossItemTooltip:Hide()
 end
 
 function Possessions_convertDB0to1()
