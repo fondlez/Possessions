@@ -1299,9 +1299,6 @@ function Possessions_ScanMail()
 						else
 							mailItems[reuseStoreIndex][INDEX_QUANTITY] = mailItems[reuseStoreIndex][INDEX_QUANTITY] + quantity
 						end
-					else
-						--Item present but uncached
---						storeIndex = storeIndex + 1
 					end --if name
 				end -- for each attachment
 			end	--if hasItem
@@ -1436,8 +1433,6 @@ function Possessions_MailSendSuccess()
 		local sendMailItem
 		--Iterate over all 12 possible attachments
 		for i, sendMailItem in pairs(sendMailItems) do
-			--sendMailItem = sendMailItems[i]
---			if sendMailItem then
 				local itemName, _, rarity, _, _, _, _, _, _, itemTexture = GetItemInfo( sendMailItem )
 				local n = #mailTable + 1
 
@@ -1530,13 +1525,11 @@ function Possessions_GBFUpdate(...)
 
 			for guildBankTabNum=1, numTabs do	--MAX_GUILDBANK_TABS
 				for guildBankSlot=1, MAX_GUILDBANK_SLOTS_PER_TAB do
---				local texture, count, locked = GetGuildBankItemInfo(guildBankTabNum, guildBankSlot);
 					local link = GetGuildBankItemLink(guildBankTabNum, guildBankSlot)
 					local containerItemNum = (guildBankTabNum * MAX_GUILDBANK_SLOTS_PER_TAB) + guildBankSlot
 					storeContainerItemNum = containerItemNum
 					link = GetGuildBankItemLink(guildBankTabNum, guildBankSlot)
 					if( link ) then
---						total = total + 1
 						local compressedLink = Possessions_CompressLink(link)
 
 						--Try to find an existing stack of this item type in the same bag to use
@@ -1583,9 +1576,6 @@ function Possessions_GBFUpdate(...)
 					end
 				end
 			end
---			DEFAULT_CHAT_FRAME:AddMessage("Update Number: "..GuildBankUpdateCount..", Number of Tabs:"..GetNumGuildBankTabs()..", Number of items: "..total)
 		end
---	else
---		PossessionsData[realmName][playerGuild].items[POSS_GUILDBANK_CONTAINER] = nil
 	end
 end
