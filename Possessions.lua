@@ -568,6 +568,32 @@ function Possessions_SlashCommandHandler(msg)
 			end
 		end
 		DEFAULT_CHAT_FRAME:AddMessage("[Possessions]: Validated "..numValidated.." items.")
+	elseif command == "-globaltooltip" then
+		if argument == "on" or argument == "enable" then
+			PossessionsData.config.globalTooltip = true
+			DEFAULT_CHAT_FRAME:AddMessage("[Possessions]: -globaltooltip on")
+		elseif argument == "off" or argument == "disable" then
+			PossessionsData.config.globalTooltip = false
+			DEFAULT_CHAT_FRAME:AddMessage("[Possessions]: -globaltooltip off")
+		else
+			DEFAULT_CHAT_FRAME:AddMessage(
+				format("[Possessions]: -globaltooltip %s", 
+					PossessionsData.config.globalTooltip and "on" or "off")
+			)
+		end
+	elseif command == "-forcetooltip" then
+		if argument == "on" or argument == "enable" then
+			PossessionsData.config.forcedGlobalTooltip = true
+			DEFAULT_CHAT_FRAME:AddMessage("[Possessions]: -forcetooltip on")
+		elseif argument == "off" or argument == "disable" then
+			PossessionsData.config.forcedGlobalTooltip = false
+			DEFAULT_CHAT_FRAME:AddMessage("[Possessions]: -forcetooltip off")
+		else
+			DEFAULT_CHAT_FRAME:AddMessage(
+				format("[Possessions]: -forcetooltip %s", 
+					PossessionsData.config.forcedGlobalTooltip and "on" or "off")
+			)
+		end
 	else
 		local itemName = GetItemInfo(msg)
 		Possessions_SearchBox:SetText(itemName or msg or "")
@@ -840,8 +866,6 @@ function Possessions_Click(self, button)
 			if IsShiftKeyDown() then
 				if (WIM and WIM.EditBoxInFocus) then
 					WIM.EditBoxInFocus:Insert(itemLink)
-        --FIX(@fondlez): chat linking changed significantly in patch 3.3.5
-        ---[[
         else
           local editbox = ChatEdit_ChooseBoxForSend()
 
@@ -850,7 +874,6 @@ function Possessions_Click(self, button)
           if editbox then
             editbox:Insert(itemLink)
           end
-        ---]]
 				end
 			elseif IsControlKeyDown() then
 				DressUpItemLink(itemLink)
@@ -1057,7 +1080,7 @@ function Possessions_VarsLoaded(self)
 	end
 
 	if not PossessionsData[realmName][playerName].inboxMoney then
-	  PossessionsData[realmName][playerName].inboxMoney = 0
+		PossessionsData[realmName][playerName].inboxMoney = 0
 	end
 
 	PlayerItemTable = PossessionsData[realmName][playerName].items
@@ -1088,7 +1111,17 @@ function Possessions_VarsLoaded(self)
 		PossessionsData.config.guildsearch = false
 	end
 	
-  -- MyAddOns is an old WoW addon management tool
+	-- Option default: enable global tooltip
+	if PossessionsData.config.globalTooltip == nil then
+		PossessionsData.config.globalTooltip = true
+	end
+	-- Option default: disable forced tooltip
+	-- (in presence of other addons, such as BankItems)
+	if PossessionsData.config.forcedGlobalTooltip == nil then
+		PossessionsData.config.forcedGlobalTooltip = false
+	end
+	
+	-- MyAddOns is an old WoW addon management tool
 	if(myAddOnsFrame) then
 		myAddOnsList.Possessions = {
 			name = "Possessions",
@@ -1135,6 +1168,8 @@ function Possessions_VarsLoaded(self)
 	POSSESSIONS_CHK_SortValueText:SetText(PossessionsLocale.INV_HELP3)
 	POSSESSIONS_CHK_SortRarityText:SetText(PossessionsLocale.INV_HELP4)
 	POSSESSIONS_CHK_LiteModeText:SetText(PossessionsLocale.CFG_LITEMODE)
+	
+	Possessions_HookGlobalTooltips()
 end
 
 function Possessions_PlayerLogin(self)
@@ -1467,27 +1502,34 @@ end
 function Possessions_OnEvent(self, event, arg1)
 	if( event == "BAG_UPDATE" ) then
 		Possessions_ReloadBag(arg1)
+		Possessions_InvalidateCaches()
 	elseif ( event == "PLAYER_MONEY") then
 		Possessions_ScanMoney()
 	elseif( event == "UNIT_INVENTORY_CHANGED" ) then
 		if( arg1 == "player") then
 			Possessions_Inspect()
+			Possessions_InvalidateCaches()
 		end
 	elseif( event == "PLAYERBANKSLOTS_CHANGED" ) then
 		--Something within the 24 free bank slots has changed
 		Possessions_ReloadBag(POSS_BANK_CONTAINER)
+		Possessions_InvalidateCaches()
 	elseif( event == "MAIL_INBOX_UPDATE" ) then
 		Possessions_ScanMail()
+		Possessions_InvalidateCaches()
 	elseif( event == "MAIL_SEND_SUCCESS" ) then
 		--MAIL_SEND_SUCCESS is fired when the inbox is opened with arg1 set to "up"
 		if not arg1 then
 			Possessions_MailSendSuccess()
+			Possessions_InvalidateCaches()
 		end
 	elseif( event == "BANKFRAME_OPENED" ) then
 		Possessions_ScanBank()
+		Possessions_InvalidateCaches()
 	elseif( event == "GUILDBANKFRAME_OPENED" ) then
 		--SCAN THE GUILD BANK
 		Possessions_ScanGuildBank()
+		Possessions_InvalidateCaches()
 	elseif( event == "GUILDBANKFRAME_CLOSED" ) then
 		GuildBankUpdateCount = 0
 	elseif( event == "PLAYER_GUILD_UPDATE" ) then
@@ -1496,6 +1538,7 @@ function Possessions_OnEvent(self, event, arg1)
 		else
 			playerGuild = nil
 		end
+		Possessions_InvalidateCaches()
 	elseif( event == "VARIABLES_LOADED" ) then
 		Possessions_VarsLoaded(self)
 	elseif( event == "PLAYER_ENTERING_WORLD" ) then
@@ -1578,4 +1621,302 @@ function Possessions_GBFUpdate(...)
 			end
 		end
 	end
+end
+
+-- Global item tooltip, inspired by addon BankItems
+do 
+	local EnumerateFrames = EnumerateFrames
+	local strfind, format, gsub, strupper = strfind, string.format, string.gsub, 
+		string.upper
+	local tinsert, wipe = table.insert, table.wipe
+	
+	local function c(r, g, b, a)
+		if not a then a = 1 end
+		
+		local mt = {
+			__metatable=false,
+			__newindex=pass,
+			color={ r, g, b, a },
+		}
+		
+		function mt:__call(text)
+			local r, g, b, a = unpack(mt.color)
+			if text then
+				return format("|c%02X%02X%02X%02X", a, r, g, b) 
+					.. tostring(text) .. FONT_COLOR_CODE_CLOSE
+			else
+				return r/255, g/255, b/255, a
+			end
+		end
+		
+		function mt:__concat(text)
+			local r, g, b, a = unpack(mt.color)
+			return format("|c%02X%02X%02X%02X", a, r, g, b) .. tostring(text)
+		end
+		
+		return setmetatable({}, mt)
+	end
+	
+	local function strFirstUpper(str)
+		return gsub(str, "^%a", strupper, 1)
+	end
+	
+	local function strGuild(str)
+		return format("<%s>", strFirstUpper(str))
+	end
+	
+	local COLOR_BLUE = c(74, 177, 213)
+	local LOCATIONS = {
+		[POSS_INVENTORY_CONTAINER] = "Bags",
+		[BACKPACK_CONTAINER + 1] = "Bags",
+		[BACKPACK_CONTAINER + 2] = "Bags",
+		[BACKPACK_CONTAINER + 3] = "Bags",
+		[BACKPACK_CONTAINER + 4] = "Bags",
+		[POSS_PLAYERBAG_CONTAINER] = "Bags",
+		[POSS_KEYRING_CONTAINER] = "Bags",
+		[POSS_BANK_CONTAINER] = "Bank",
+		[BACKPACK_CONTAINER + NUM_BAG_SLOTS + 1] = "Bank",
+		[BACKPACK_CONTAINER + NUM_BAG_SLOTS + 2] = "Bank",
+		[BACKPACK_CONTAINER + NUM_BAG_SLOTS + 3] = "Bank",
+		[BACKPACK_CONTAINER + NUM_BAG_SLOTS + 4] = "Bank",
+		[BACKPACK_CONTAINER + NUM_BAG_SLOTS + 5] = "Bank",
+		[BACKPACK_CONTAINER + NUM_BAG_SLOTS + 6] = "Bank",
+		[BACKPACK_CONTAINER + NUM_BAG_SLOTS + 7] = "Bank",
+		[POSS_BANKBAG_CONTAINER] = "Bank",
+		[POSS_PLAYER_CONTAINER] = "Equipped",
+		[POSS_MAIL_CONTAINER] = "Mail",
+		[POSS_GUILDBANK_CONTAINER] = "Guild Bank",
+	}
+	local locationsOrder = { "Bank", "Bags", "Equipped", "Mail" }
+	local locationFormats = {
+		"%s %d",
+		"%s %d, %s %d",
+		"%s %d, %s %d, %s %d",
+		"%s %d, %s %d, %s %d, %s %d",
+	}
+	local possessionFormat = "%s has %d [%s]"
+	local totalFormat = "Total: %d"
+	
+	local isAlreadyAdded = false
+	local tooltipCache = {}
+	
+	local function quantitiesToText(quantities, order)
+		local count = 0
+		for k,v in pairs(quantities) do count = count + 1 end
+		
+		local locationText = locationFormats[count]
+		
+		for i=1, #order do
+			local location = order[i]
+			local quantity = quantities[location]
+			
+			if quantity and quantity > 0 then
+				locationText = gsub(locationText, "%%s %%d",
+					format("%s %d", location, quantity), 1)
+			end
+		end
+		
+		return locationText
+	end
+	
+	local function getItemData(itemId)
+		if not tooltipCache[itemId] then
+			tooltipCache[itemId] = {}
+			
+			local total = 0
+			
+			-- Current player
+			local playerTotal = 0
+			local playerTable = PossessionsData[realmName][playerName]
+			local quantities = {}
+			
+			for containerId, container in pairs(playerTable.items) do
+				for slotId, slot in pairs(container) do
+					local slotItemId = slot[INDEX_LINK]
+						
+					if slotItemId and tonumber(slotItemId) == itemId then
+						local location = LOCATIONS[containerId]
+						local quantity = slot[INDEX_QUANTITY]
+						
+						if location and quantity then
+							quantities[location] = (quantities[location] or 0) + quantity
+							playerTotal = playerTotal + quantity
+						end
+					end
+				end
+			end
+			
+			if playerTotal > 0 then
+				local textLine = format(possessionFormat, strFirstUpper(playerName), 
+					playerTotal, quantitiesToText(quantities, locationsOrder))
+					
+				tinsert(tooltipCache[itemId], textLine)
+				
+				total = total + playerTotal
+			end
+			
+			-- All other characters, including collecting guild bank data
+			local guildBanks = {}
+			
+			for character, charTable in pairs(PossessionsData[realmName]) do
+				if character ~= playerName then
+					local quantities = {}
+					local charTotal = 0
+					
+					for containerId, container in pairs(charTable.items) do
+						for slotId, slot in pairs(container) do
+							local slotItemId = slot[INDEX_LINK]
+								
+							if slotItemId and tonumber(slotItemId) == itemId then
+								local location = LOCATIONS[containerId]
+								local quantity = slot[INDEX_QUANTITY]
+								
+								if location and quantity then
+									quantities[location] = (quantities[location] or 0) + quantity
+									charTotal = charTotal + quantity
+								end
+							end
+						end
+					end 
+					
+					if charTotal > 0 then
+						if not quantities["Guild Bank"] then
+							local textLine = format(possessionFormat, 
+								strFirstUpper(character), charTotal, 
+								quantitiesToText(quantities, locationsOrder))
+					
+							tinsert(tooltipCache[itemId], textLine)
+						else
+							guildBanks[character] = quantities["Guild Bank"]
+						end
+						
+						total = total + charTotal
+					end
+				end
+			end
+			
+			-- Finally, guild banks
+			if PossessionsData.config.guildsearch then
+				for guildBank, quantity in pairs(guildBanks) do
+					if quantity > 0 then
+						local textLine = format(possessionFormat, strGuild(guildBank), 
+							quantity, format("%s %d", "Guild Bank", quantity))
+						
+						tinsert(tooltipCache[itemId], textLine)
+					end
+				end
+			end
+			
+			-- Complete total for the item
+			if total > 0 then
+				tinsert(tooltipCache[itemId], format(totalFormat, total))
+			end
+		end
+		
+		return tooltipCache[itemId]
+	end
+	
+	local function detectOtherTooltips()
+		if BankItems_HookTooltips then return true end
+		return false
+	end
+	
+	local function addTooltip(self, ...)
+		if not PossessionsData.config.globalTooltip
+				or (detectOtherTooltips()
+				and not PossessionsData.config.forcedGlobalTooltip) then
+			return
+		end
+		
+		if isAlreadyAdded then return end
+		
+		local _, link = self:GetItem()
+		local itemId = link and tonumber(link:match("item:(%d+)"))
+		if not itemId then return end
+		
+		local data = getItemData(itemId)
+		if data and #data > 0 then 
+			for i = 1, #data do
+				self:AddLine(data[i], COLOR_BLUE())
+			end
+			
+			self:Show()
+		end
+		
+		isAlreadyAdded = true
+	end
+	
+	local function clearTooltip(self, ...)
+		isAlreadyAdded = false
+	end
+	
+	local function hookGlobalTooltip(tooltip)
+		if not tooltip then return end
+		
+		local setItem = tooltip:GetScript("OnTooltipSetItem")
+		if setItem then
+			tooltip:SetScript("OnTooltipSetItem", function(self, ...)
+				addTooltip(self, ...)
+				return setItem(self, ...)
+			end)
+		else
+			tooltip:SetScript("OnTooltipSetItem", addTooltip)
+		end
+		
+		local clearItem = tooltip:GetScript("OnTooltipCleared")
+		if clearItem then
+			tooltip:SetScript("OnTooltipCleared", function(self, ...)
+				isAlreadyAdded = false
+				return clearItem(self, ...)
+			end)
+		else
+			tooltip:SetScript("OnTooltipCleared", clearTooltip)
+		end
+	end
+	
+	local whitelistTooltips = {
+		"GameTooltip",
+		"ItemRefTooltip",
+		"ShoppingTooltip",
+		"ComparisonTooltip",					 -- EquipCompare support
+		"EQCompareTooltip",						-- EQCompare support
+		"tekKompareTooltip",					 -- tekKompare support
+		"IRR_",
+		"LinksTooltip",								-- Links support
+		"AtlasLootTooltip",						-- AtlasLoot support
+		"ItemMagicTooltip",						-- ItemMagic support
+		"SniffTooltip",								-- Sniff support
+		"LH_",												 -- LinkHeaven support
+		"MirrorTooltip",							 -- Mirror support
+		"LootLink_ResultsTooltip",		 -- Saeris' LootLink support
+		"TooltipExchange_TooltipShow", -- TooltipExchange support
+	}
+	
+	function Possessions_HookGlobalTooltips()
+		local tooltip = EnumerateFrames()
+		while tooltip do
+			if tooltip:GetObjectType() == "GameTooltip" then
+				local name = tooltip:GetName()
+				if name then
+					for i = 1, #whitelistTooltips do
+						if strfind(name, whitelistTooltips[i], 1, true) then
+							hookGlobalTooltip(tooltip)
+							break
+						end
+					end
+				end
+			end
+			tooltip = EnumerateFrames(tooltip)
+		end
+		-- Prevent re-running this function
+		Possessions_HookGlobalTooltips = function() end
+	end
+	
+	function Possessions_InvalidateTooltipCache()
+		if tooltipCache then wipe(tooltipCache) end
+	end
+end
+
+function Possessions_InvalidateCaches()
+	Possessions_InvalidateTooltipCache()
 end

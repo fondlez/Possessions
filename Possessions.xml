@@ -436,6 +436,7 @@
 							PlaySound("igMainMenuOptionCheckBoxOff");
 						end
 						Possessions_Update();
+						Possessions_InvalidateTooltipCache()
 					 </OnClick>
 				</Scripts>
 				<NormalTexture file="Interface\Buttons\UI-CheckBox-Up"/>
