@@ -1658,7 +1658,8 @@ do
 	end
 	
 	local function strFirstUpper(str)
-		return gsub(str, "^%a", strupper, 1)
+		-- String functions `strupper`, `strlower`, `strsub` are UTF-8 aware
+		return strupper(strsub(str, 1, 1)) .. strsub(str, 2)
 	end
 	
 	local function strGuild(str)
