@@ -421,7 +421,7 @@ end
 function Possessions_ReloadBag(bagnum)
 	local link
 	local maxContainerItems = GetContainerNumSlots(bagnum)
-	local bagLink  = nil
+	local bagLink	= nil
 	local bagSlotContainer = nil
 
 
@@ -465,7 +465,7 @@ function Possessions_ReloadBag(bagnum)
 				if( Possessions_IsLiteMode() == true ) then --Only search for existing stack if Lite Mode is enabled
 					--Look through previous bag contents
 					for prevContItemNum=1, containerItemNum-1 do
-					  if storeBag[prevContItemNum] then
+						if storeBag[prevContItemNum] then
 							if storeBag[prevContItemNum][INDEX_LINK] == compressedLink then -- and storeBag[prevContItemNum][INDEX_QUANTITY] > 0 then --Don't want quantity to be 0 since we might put stuff into a slot that will soon be overwritten by new contents
 								storeContainerItemNum = prevContItemNum
 								break
@@ -866,14 +866,14 @@ function Possessions_Click(self, button)
 			if IsShiftKeyDown() then
 				if (WIM and WIM.EditBoxInFocus) then
 					WIM.EditBoxInFocus:Insert(itemLink)
-        else
-          local editbox = ChatEdit_ChooseBoxForSend()
+				else
+					local editbox = ChatEdit_ChooseBoxForSend()
 
-          ChatEdit_ActivateChat(editbox)
+					ChatEdit_ActivateChat(editbox)
 
-          if editbox then
-            editbox:Insert(itemLink)
-          end
+					if editbox then
+						editbox:Insert(itemLink)
+					end
 				end
 			elseif IsControlKeyDown() then
 				DressUpItemLink(itemLink)
@@ -886,7 +886,7 @@ function Possessions_Click(self, button)
 end
 
 local PossItemTooltip = CreateFrame("GameTooltip",
-  "PossessionsItemTooltip", UIParent, "GameTooltipTemplate")
+	"PossessionsItemTooltip", UIParent, "GameTooltipTemplate")
 
 function Possessions_ItemButton_OnEnter(self)
 	local id = self:GetID()
@@ -1299,7 +1299,7 @@ function Possessions_ScanMail()
 		for index = 1, numInboxItems do
 			_, _, _, _, money, _, _, hasItem = GetInboxHeaderInfo(index)
 			if money > 0 then
-			  PossessionsData[realmName][playerName].inboxMoney = PossessionsData[realmName][playerName].inboxMoney + money
+				PossessionsData[realmName][playerName].inboxMoney = PossessionsData[realmName][playerName].inboxMoney + money
 			end
 			if hasItem then
 				for attachSlot=1, ATTACHMENTS_MAX_SEND do
@@ -1786,11 +1786,14 @@ do
 								quantitiesToText(quantities, locationsOrder))
 					
 							tinsert(tooltipCache[itemId], textLine)
+							total = total + charTotal
 						else
 							guildBanks[character] = quantities["Guild Bank"]
+							
+							if PossessionsData.config.guildsearch then
+								total = total + charTotal
+							end
 						end
-						
-						total = total + charTotal
 					end
 				end
 			end

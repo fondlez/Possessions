@@ -1,5 +1,5 @@
 ## Interface: 30300
-## Version: 3.1.0-fondlez
+## Version: 3.1.1-fondlez
 ## Title: Possessions |cff00aa003.1|r 
 ## Notes: AddOn to keep track of all of your items
 ## Author: Oystein, Neloter, fondlez
