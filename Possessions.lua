@@ -1661,6 +1661,14 @@ do
 		return format("<%s>", Possessions_Capitalize(str))
 	end
 	
+	local function linkToId(link)
+		return link and tonumber(link:match("item:(%d+)"))
+	end
+	
+	local function codeToId(code)
+		return code and tonumber(code:match("%d+"))
+	end
+	
 	local COLOR_BLUE = c(74, 177, 213)
 	local LOCATIONS = {
 		[POSS_INVENTORY_CONTAINER] = "Bags",
@@ -1728,9 +1736,10 @@ do
 			
 			for containerId, container in pairs(playerTable.items) do
 				for slotId, slot in pairs(container) do
-					local slotItemId = slot[INDEX_LINK]
-						
-					if slotItemId and tonumber(slotItemId) == itemId then
+					local slotCode = slot[INDEX_LINK]
+					local slotItemId = codeToId(slotCode)
+					
+					if slotItemId and slotItemId == itemId then
 						local location = LOCATIONS[containerId]
 						local quantity = slot[INDEX_QUANTITY]
 						
@@ -1762,9 +1771,10 @@ do
 					
 					for containerId, container in pairs(charTable.items) do
 						for slotId, slot in pairs(container) do
-							local slotItemId = slot[INDEX_LINK]
-								
-							if slotItemId and tonumber(slotItemId) == itemId then
+							local slotCode = slot[INDEX_LINK]
+							local slotItemId = codeToId(slotCode)
+							
+							if slotItemId and slotItemId == itemId then
 								local location = LOCATIONS[containerId]
 								local quantity = slot[INDEX_QUANTITY]
 								
@@ -1831,7 +1841,7 @@ do
 		if isAlreadyAdded then return end
 		
 		local _, link = self:GetItem()
-		local itemId = link and tonumber(link:match("item:(%d+)"))
+		local itemId = link and linkToId(link)
 		if not itemId then return end
 		
 		local data = getItemData(itemId)
