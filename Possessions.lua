@@ -1657,13 +1657,8 @@ do
 		return setmetatable({}, mt)
 	end
 	
-	local function strFirstUpper(str)
-		-- String functions `strupper`, `strlower`, `strsub` are UTF-8 aware
-		return strupper(strsub(str, 1, 1)) .. strsub(str, 2)
-	end
-	
 	local function strGuild(str)
-		return format("<%s>", strFirstUpper(str))
+		return format("<%s>", Possessions_Capitalize(str))
 	end
 	
 	local COLOR_BLUE = c(74, 177, 213)
@@ -1723,7 +1718,7 @@ do
 	local function getItemData(itemId)
 		if not tooltipCache[itemId] then
 			tooltipCache[itemId] = {}
-			
+
 			local total = 0
 			
 			-- Current player
@@ -1748,8 +1743,9 @@ do
 			end
 			
 			if playerTotal > 0 then
-				local textLine = format(possessionFormat, strFirstUpper(playerName), 
-					playerTotal, quantitiesToText(quantities, locationsOrder))
+				local textLine = format(possessionFormat, 
+					Possessions_Capitalize(playerName), playerTotal, 
+					quantitiesToText(quantities, locationsOrder))
 					
 				tinsert(tooltipCache[itemId], textLine)
 				
@@ -1783,7 +1779,7 @@ do
 					if charTotal > 0 then
 						if not quantities["Guild Bank"] then
 							local textLine = format(possessionFormat, 
-								strFirstUpper(character), charTotal, 
+								Possessions_Capitalize(character), charTotal, 
 								quantitiesToText(quantities, locationsOrder))
 					
 							tinsert(tooltipCache[itemId], textLine)
